@@ -23,7 +23,7 @@ let processMessageBuild config =
     let botResult data = api config data |> Async.RunSynchronously
     let bot data = botResult data |> processResult
 
-    let sendSimpleMessage text = (sendMessageBase (ChatId.Int(telegramGroupId)) text (Some ParseMode.Markdown) None None None None) |> bot
+    let sendSimpleMessage text = (sendMessageBase (ChatId.Int(telegramGroupId)) text (Some ParseMode.HTML) None None None None) |> bot
 
     let result () =
         processCommands ctx [

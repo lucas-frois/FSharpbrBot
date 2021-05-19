@@ -27,9 +27,10 @@ let processMessageBuild config =
     
     let result () = 
         processCommands ctx [
-            cmd "/mods" (fun _ -> sendSimpleMessage "ping @lucas_frois @c")
-            cmd "/goodquestion" (fun _ -> sendSimpleMessage "https://stackoverflow.com/help/how-to-ask")
-            cmd "/hello" (fun _ -> sendSimpleMessage $"Seja bem vindo! Já programa em F#? :) {Environment.NewLine}As regras do grupo e materiais pra aprender a linguagem estão na mensagem pinada, fiquem a vontade para interagir.")
+            cmd "/comandos" (fun _ -> sendSimpleMessage "Os comandos disponíveis são: /comandos, /mods, /boapergunta e /oi.")
+            cmd "/mods" (fun _ -> sendSimpleMessage "ping @lucas_frois @pedrocastilho @weslenng @Lucasteles42")
+            cmd "/boapergunta" (fun _ -> sendSimpleMessage "https://stackoverflow.com/help/how-to-ask")
+            cmd "/oi" (fun _ -> sendSimpleMessage $"Seja bem vindo! Já programa em F#? :) {Environment.NewLine}As regras do grupo e materiais pra aprender a linguagem estão na mensagem pinada, fiquem a vontade para interagir.")
         ] |> ignore
         ()
 

@@ -66,7 +66,7 @@ open Suave
 [<EntryPoint>]
 let main _ =
   let port = System.Environment.GetEnvironmentVariable("PORT") |> (function null -> "8085" | e -> e) |> int
-  let _, server = startWebServerAsync {defaultConfig with bindings = [ HttpBinding.createSimple HTTP "127.0.0.1" port ]} (Successful.OK "Hello world")
+  let _, server = startWebServerAsync {defaultConfig with bindings = [ HttpBinding.createSimple HTTP "0.0.0.0" port ]} (Successful.OK "Hello world")
   let startBot =
       start (Environment.GetEnvironmentVariable("TELEGRAM_TOKEN"))
   [startBot;server] |> Async.Parallel |> Async.Ignore |> Async.RunSynchronously

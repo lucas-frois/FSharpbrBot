@@ -13,8 +13,8 @@ let processMessageBuild config =
     let processResultWithValue (result: Result<'a, ApiResponseError>) =
         match result with
         | Ok v -> Some v
-        | _ ->
-          printfn "Server error: %A" DateTime.Now
+        | Error e ->
+          printfn "Server error: %A" e.Description
           None
 
     let processResult (result: Result<'a, ApiResponseError>) =
@@ -41,7 +41,6 @@ let processMessageBuild config =
         | None -> Seq.empty
         | Some x -> x.NewChatMembers |> Option.defaultValue Seq.empty
 
-    //let newUsers () = ctx.Update.Message.Value.NewChatMembers |> Option.defaultValue Seq.empty
     let hasNewUsers = newUsers () |> Seq.isEmpty |> not
     let usernames = newUsers () |> List.ofSeq |> List.map (fun x -> x.Username) |> List.choose id |> List.map (fun x -> "@" + x)
     let namesConcatenated = (String.concat ", " usernames)

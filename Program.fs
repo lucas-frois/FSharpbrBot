@@ -9,23 +9,23 @@ let telegramGroupId = -1001444616437L
 
 let processMessageBuild config =
   let updateArrived ctx =
-    
+
     let processResultWithValue (result: Result<'a, ApiResponseError>) =
         match result with
         | Ok v -> Some v
         | _ ->
           printfn "Server error: %A" DateTime.Now
           None
-    
+
     let processResult (result: Result<'a, ApiResponseError>) =
         processResultWithValue result |> ignore
 
     let botResult data = api config data |> Async.RunSynchronously
     let bot data = botResult data |> processResult
-    
+
     let sendSimpleMessage text = (sendMessageBase (ChatId.Int(telegramGroupId)) text (Some ParseMode.Markdown) None None None None) |> bot
-    
-    let result () = 
+
+    let result () =
         processCommands ctx [
             cmd "/comandos" (fun _ -> sendSimpleMessage "Os comandos disponíveis são: /comandos, /mods, /boapergunta e /oi.")
             cmd "/mods" (fun _ -> sendSimpleMessage "ping @lucas_frois @pedrocastilho @weslenng @Lucasteles42")
@@ -36,7 +36,7 @@ let processMessageBuild config =
 
     result()
 
-    let newUsers () = 
+    let newUsers () =
         match ctx.Update.Message with
         | None -> Seq.empty
         | Some x -> x.NewChatMembers |> Option.defaultValue Seq.empty
@@ -48,7 +48,7 @@ let processMessageBuild config =
 
     match hasNewUsers with
     | false -> ()
-    | true -> 
+    | true ->
         match List.length usernames with
         | 1 -> sendSimpleMessage $"Seja bem vindo {usernames.Head}! Já programa em F#? :) {Environment.NewLine}As regras do grupo e materiais pra aprender a linguagem estão na mensagem pinada, fiquem a vontade para interagir."
         | _ -> sendSimpleMessage $"Sejam bem vindos {namesConcatenated}! Já programam em F#? :) {Environment.NewLine}As regras do grupo e materiais pra aprender a linguagem estão na mensagem pinada, fiquem a vontade para interagir."
@@ -60,10 +60,14 @@ let start token =
   async {
       return! startBot config updateArrived None
   }
-  
+
+open Suave
+
 [<EntryPoint>]
 let main _ =
-  let startBot = 
+  let port = System.Environment.GetEnvironmentVariable("PORT") |> (function null -> "8085" | e -> e) |> int
+  let _, server = startWebServerAsync {defaultConfig with bindings = [ HttpBinding.createSimple HTTP "127.0.0.1" port ]} (Successful.OK "Hello world")
+  let startBot =
       start (Environment.GetEnvironmentVariable("TELEGRAM_TOKEN"))
-  startBot |> Async.RunSynchronously
+  [startBot;server] |> Async.Parallel |> Async.Ignore |> Async.RunSynchronously
   0

@@ -10,7 +10,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ExtCore" Version="0.8.46" />
     <PackageReference Include="FunHttp" Version="1.0.0" />
     <PackageReference Include="Funogram" Version="2.0.3" />
     <PackageReference Include="Funogram.Telegram" Version="4.4.2.3" />

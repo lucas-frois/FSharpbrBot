@@ -9,7 +9,7 @@ let telegramGroupId = -1001444616437L
 
 let processMessageBuild config =
   let updateArrived ctx =
-
+    
     let processResultWithValue (result: Result<'a, ApiResponseError>) =
         match result with
         | Ok v -> Some v
@@ -25,9 +25,24 @@ let processMessageBuild config =
     
     let sendSimpleMessage text = (sendMessageBase (ChatId.Int(telegramGroupId)) text (Some ParseMode.Markdown) None None None None) |> bot
     
-    let newUsers = ctx.Update.Message.Value.NewChatMembers |> Option.defaultValue Seq.empty
-    let hasNewUsers = newUsers |> Seq.isEmpty |> not
-    let usernames = newUsers |> List.ofSeq |> List.map (fun x -> x.Username) |> List.choose id |> List.map (fun x -> "@" + x)
+    let result () = 
+        processCommands ctx [
+            cmd "/mods" (fun _ -> sendSimpleMessage "ping @lucas_frois @c")
+            cmd "/goodquestion" (fun _ -> sendSimpleMessage "https://stackoverflow.com/help/how-to-ask")
+            cmd "/hello" (fun _ -> sendSimpleMessage $"Seja bem vindo! Já programa em F#? :) {Environment.NewLine}As regras do grupo e materiais pra aprender a linguagem estão na mensagem pinada, fiquem a vontade para interagir.")
+        ] |> ignore
+        ()
+
+    result()
+
+    let newUsers () = 
+        match ctx.Update.Message with
+        | None -> Seq.empty
+        | Some x -> x.NewChatMembers |> Option.defaultValue Seq.empty
+
+    //let newUsers () = ctx.Update.Message.Value.NewChatMembers |> Option.defaultValue Seq.empty
+    let hasNewUsers = newUsers () |> Seq.isEmpty |> not
+    let usernames = newUsers () |> List.ofSeq |> List.map (fun x -> x.Username) |> List.choose id |> List.map (fun x -> "@" + x)
     let namesConcatenated = (String.concat ", " usernames)
 
     match hasNewUsers with

@@ -6,7 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include=".env" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

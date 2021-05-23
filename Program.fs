@@ -1,11 +1,15 @@
-﻿open System
+open System
+open System.IO
+open System.Net
 open Funogram.Api
 open Funogram.Types
 open Funogram.Telegram.Api
 open Funogram.Telegram.Types
 open Funogram.Telegram.Bot
 
+let [<Literal>] TokenFileName = "token"
 let telegramGroupId = -1001444616437L
+let webSocketEndpoint = Some "https://fsharpbrbot.herokuapp.com"
 
 let processMessageBuild config =
   let updateArrived ctx =
@@ -56,17 +60,37 @@ let processMessageBuild config =
 let start token =
   let config = { defaultConfig with Token = token }
   let updateArrived = processMessageBuild config
-  async {
-      return! startBot config updateArrived None
-  }
 
-open Suave
+  match webSocketEndpoint with
+  | Some webSocketEndpoint ->
+    async {
+      let apiPath = sprintf "/%s" config.Token
+      let webSocketEndpoint = sprintf "%s%s" webSocketEndpoint apiPath
+      let! hook = setWebhookBase webSocketEndpoint None None None |> api config
+      match hook with
+      | Ok _ ->
+        use listener = new HttpListener()
+        listener.Prefixes.Add((sprintf "http://*:%s/" (Environment.GetEnvironmentVariable("PORT"))))
+        listener.Start()
+
+        let webhook = { Listener = listener; ValidateRequest = (fun req -> req.Url.LocalPath = apiPath) }
+        return! startBot { config with WebHook = Some webhook } updateArrived None
+      | Error e -> 
+        printf "Can't set webhook: %A" e
+        return ()
+    }
+  | _ ->
+    async {
+      let! _ = deleteWebhookBase () |> api config
+      return! startBot config updateArrived None
+    }
 
 [<EntryPoint>]
 let main _ =
-  let port = System.Environment.GetEnvironmentVariable("PORT") |> (function null -> "8085" | e -> e) |> int
-  let _, server = startWebServerAsync {defaultConfig with bindings = [ HttpBinding.createSimple HTTP "0.0.0.0" port ]} (Successful.OK "Hello world")
   let startBot =
+    if File.Exists(TokenFileName) then
+      start (File.ReadAllText(TokenFileName))
+    else
       start (Environment.GetEnvironmentVariable("TELEGRAM_TOKEN"))
-  [startBot;server] |> Async.Parallel |> Async.Ignore |> Async.RunSynchronously
+  startBot |> Async.RunSynchronously
   0
